@@ -58,8 +58,6 @@ public class MurdererFinder {
                     }
                 }
                 if (!isInList && player.getName() != Minecraft.getMinecraft().thePlayer.getName()) {
-                    // 清空之前的murder id，再写入新的murder
-                    MurdererFinder.murderers.clear();
                     MurdererFinder.murderers.add(player.getName());
                     Message.sendMessage(player.getName(), Message.LEVEL.Murderer);
                 }
@@ -68,7 +66,7 @@ public class MurdererFinder {
                 final EntityPlayer murderer = Minecraft.getMinecraft().theWorld.getPlayerEntityByName((String) MurdererFinder.murderers.get(y));
                 if (murderer != null) {
                     GlStateManager.disableDepth();
-                    renderHitBox((Entity) murderer, new Color(255, 55, 55), (float) (10 / Math.sqrt(Minecraft.getMinecraft().thePlayer.getDistanceToEntity(murderer))), event.getPartialTicks());
+                    renderHitBox((Entity) murderer, new Color(255, 55, 55), (float) (10/Math.sqrt(Minecraft.getMinecraft().thePlayer.getDistanceToEntity(murderer))), event.getPartialTicks());
 
                     GlStateManager.enableDepth();
                 }
@@ -76,6 +74,18 @@ public class MurdererFinder {
 
             // Detectives
             if (player != null && player.getHeldItem() != null && player.getHeldItem().getItem() != null && player.getHeldItem().getItem() == Items.bow) {
+                //Clear murder in detctive list
+                for (int i = 0; i < MurdererFinder.detectives.size(); i++) {
+                    String detectiveName = MurdererFinder.detectives.get(i);
+                    if (MurdererFinder.murderers.contains(detectiveName)) {
+                        MurdererFinder.detectives.remove(i);
+                        i--;
+                    }
+                }
+                //Skip adding detective for murder
+                if (MurdererFinder.murderers.contains(player.getName())) {
+                    return;
+                }
                 boolean isInList = false;
                 for (int x = 0; x < MurdererFinder.detectives.size(); ++x) {
                     if (MurdererFinder.detectives.get(x) == player.getName() && MurdererFinder.detectives.size() > 0) {
@@ -90,6 +100,10 @@ public class MurdererFinder {
             }
             for (int y = 0; y < MurdererFinder.detectives.size(); ++y) {
                 final EntityPlayer detective = Minecraft.getMinecraft().theWorld.getPlayerEntityByName((String) MurdererFinder.detectives.get(y));
+                //Skip rendering detective on murder
+                if (MurdererFinder.murderers.contains(detective.getName())) {
+                    continue;
+                }
                 if (detective != null) {
                     GlStateManager.disableDepth();
                     renderHitBox((Entity) detective, new Color(0, 255, 255), (float) (10/Minecraft.getMinecraft().thePlayer.getDistanceToEntity(detective)), event.getPartialTicks());
